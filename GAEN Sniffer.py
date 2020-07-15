@@ -2,6 +2,8 @@
 
 import gc
 import time
+from darz_stats import *
+from darz_time import *
 import _bleio
 import ble_print
 from ble_print import print_scan_entry, hex_of_bytes
@@ -9,26 +11,7 @@ import ble_gaen_parsing
 from ble_gaen_parsing import is_gaen, gaen_recognition_summary, same_gaen
 from ble_gaen_parsing import rpi_gaen, metadata_gaen
 
-def mm_ss_of_s(s):
-    mm, ss = divmod(int(s), 60)
-    return "{:02d}:{:02d}".format(mm, ss)
 
-def s_of_ns(ns, ref_ns=0):
-    return round( (ns-ref_ns) / 1_000_000_000, 3)
-
-def stats_of_number_list( nums ):
-    n = len(nums)
-    if n == 0:
-        raise Exception( "Cannot print stats of an empty number list")
-    numbers = nums[:]  # copy
-    numbers.sort()
-    total = sum(numbers)
-    ave = total / n
-    top = max(numbers)
-    bottom = min(numbers)
-    middle = numbers[int(n/2)]
-    f = "n = {:d},  sum = {:2.3f},  mean = {:1.3f},  max = {:1.3f},  min = {:1.3f},  median = {:1.3f}"
-    return f.format(n, total, ave, top, bottom, middle)
 
 # ======== Find a BLE Radio and low-level interface ========
 ble = _bleio.adapter
@@ -114,7 +97,7 @@ def print_a_few_packets(number_of_packets=20, channel=None, filter=None):
         print("----------------------------------------------")
     print()
 
-# The nschse from consequtive scanned advertisement packets
+# The nschse from consecutive scanned advertisement packets
 # in 7-9 s time.
 def nschse_list(minimum_rssi=-80):
     return [ (time.monotonic_ns(), 37, se)
