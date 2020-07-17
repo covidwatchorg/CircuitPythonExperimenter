@@ -1,13 +1,20 @@
 # GAEN parsing
 import _bleio
 
-# Each function here takes one _ble scan_entry argument,
+# Each function here takes one _ble ScanEntry argument,
 # except for same_gaen(se1, se2), which takes two.
+# This may also be an annotated ScanEntry or a GAEN ScanEntry.
 
 # GAEN predicates
 
-def has_gaen_address_type(scan_entry):
+def has_strict_gaen_address_type(scan_entry):
     return scan_entry.address.type == _bleio.Address.RANDOM_PRIVATE_NON_RESOLVABLE
+
+def has_alt_gaen_address_type(scan_entry):
+    return scan_entry.address.type == _bleio.Address.RANDOM_PRIVATE_RESOLVABLE
+
+def has_gaen_address_type(se):
+    return has_strict_gaen_address_type(se) or has_alt_gaen_address_type(se)
 
 def has_gaen_packet_type(scan_entry):
     return not scan_entry.scan_response and not scan_entry.connectable
@@ -19,7 +26,6 @@ def starts_with_flags_ad(scan_entry):
 def has_gaen_flags_ad(scan_entry):
     return starts_with_flags_ad(scan_entry) and (scan_entry.advertisement_bytes[2]&2)
 
-
 def has_gaen_data(scan_entry):
     match = b'\x03\x03\x6F\xFD\x17\x16\x6F\xFD'
     try:
@@ -28,21 +34,25 @@ def has_gaen_data(scan_entry):
         return False
 
 def is_long_gaen(scan_entry):
-    return has_gaen_flags_ad(scan_entry) and has_gaen_data(scan_entry)
+    return has_gaen_flags_ad(scan_entry) \
+           and has_gaen_data(scan_entry) \
+            and has_strict_gaen_address_type((scan_entry))
 
 def is_short_gaen(scan_entry):
-    return not starts_with_flags_ad(scan_entry) and has_gaen_data(scan_entry)
+    return not starts_with_flags_ad(scan_entry) \
+           and has_gaen_data(scan_entry) \
+            and has_alt_gaen_address_type(scan_entry)
 
 def is_gaen(scan_entry):
-    return is_short_gaen(scan_entry) or is_long_gaen(scan_entry)
+    return is_long_gaen(scan_entry) or is_short_gaen(scan_entry)
 
-def gaen_recognition_summary(se):
+def gaen_recognition_summary_string(se):
     s = ""
     if is_gaen(se):
         if is_long_gaen(se):
-            s = s + "long GAEN packet, "
+            s = s + "Apple GAEN packet, "
         else:
-            s += "short GAEN packet, "
+            s += "Google GAEN packet, "
     else:
         s += "non-GAEN packet, "
     if has_gaen_flags_ad(se):

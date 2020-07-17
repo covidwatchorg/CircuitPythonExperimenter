@@ -1,5 +1,6 @@
 # printing advertising packets and support formatting
 import _bleio
+import ble_gaen_scanning
 
 # ======================================================
 # Functions to help with printing a generic advertising packet.
