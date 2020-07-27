@@ -40,7 +40,7 @@ def channel_fun(scan_interval, scan_window):
     base_s = seconds() - offset_s
     return (lambda: 37 + int((seconds()-base_s)/scan_interval) % 3)
 
-def annotated_scan( timeout=None, interval=0.1, window=0.1, minimum_rssi=-80, filter=(lambda se: True)):
+def annotated_scan( timeout=6.0, interval=0.1, window=0.1, minimum_rssi=-80, filter=(lambda se: True)):
     """returns an iterator for annotated scan entries"""
     scan_interval, scan_window = adjusted_checked_scan_timing(interval, window)
     ch = channel_fun(scan_interval, scan_window)
@@ -49,34 +49,36 @@ def annotated_scan( timeout=None, interval=0.1, window=0.1, minimum_rssi=-80, fi
             interval=scan_interval,
             window=scan_window,
             minimum_rssi=minimum_rssi)
-    i = (AnnotatedScanEntry(se, channel=ch())
-            for se
-            in scan_entry_iterator
-            if filter(se))
+    i = (AnnotatedScanEntry(se, channel=ch()) for se in scan_entry_iterator if filter(se))
     return i
 
-def gse_single(timeout=6.0, minimum_rssi=-75):
+def gse_single(timeout=6.0, minimum_rssi=-75, filter=is_gaen):
     """returns the next annotated GAEN scan_entry"""
-    try:
-        for gse in annotated_scan(
-                timeout=timeout,
-                minimum_rssi=minimum_rssi,
-                filter=is_gaen):
-            return gse
-    finally:
+    for gse in annotated_scan(timeout=timeout, minimum_rssi=minimum_rssi, filter=filter):
         _bleio.adapter.stop_scan()
-    raise Exception("no specified packet in {:3f} seconds".format(timeout))
+        return gse
+    return None
 
-def gse_after_gaen_change(start_gse=None):
+def gse_after_gaen_change(start_gse=None, filter=is_gaen):
     """returns the GAEN scan entry shortly after address rotation"""
     if not start_gse:
-        start_gse = gse_single()
-    minutes = 30
+        start_gse = gse_single(filter=filter)
+    if not start_gse:
+        return None
+    if is_long_gaen(start_gse):
+        learned_filter = is_long_gaen
+    else:
+        learned_filter = is_short_gaen
+    minutes = 45
     abort_s = seconds() + 60 * minutes
     while seconds() < abort_s:
-        current_gse = gse_single()
+        current_gse = gse_single(filter=learned_filter)
+        if not current_gse:
+            return None
         if not same_gaen(start_gse, current_gse):
             check_gse = gse_single()
+            if not check_gse:
+                return None
             if same_gaen(current_gse, check_gse):
                 return current_gse
     raise Exception( "No change was found after {:d} minutes.".format(minutes))
