@@ -83,12 +83,12 @@ def gse_after_gaen_change(start_gse=None, filter=is_gaen):
                 return current_gse
     raise Exception( "No change was found after {:d} minutes.".format(minutes))
 
-def gse_burst_list(minimum_rssi=-80):
+def gse_burst_list(minimum_rssi=-80, filter=is_gaen):
     """returns a list of channel 37 GAEN packet received in 9 s"""
     return list( annotated_scan(
         timeout=9.5,
         interval=10., window=9.0,
         minimum_rssi=minimum_rssi,
-        filter=is_gaen) )
+        filter=filter) )
 
 

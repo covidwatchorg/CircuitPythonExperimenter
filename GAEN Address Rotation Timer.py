@@ -18,11 +18,11 @@ ble.erase_bonding()
 
 # Uncomment the applicable line
 # filter = is_gaen        # first of Apple or Google source seen
-# filter = is_long_gaen   # Apple only
-filter = is_short_gaen  # Google only
+filter = is_long_gaen   # Apple only
+#filter = is_short_gaen  # Google only
 
 # Edit to set the maximum length of time for measurements
-timeout_hh_mm = "01:30"
+timeout_hh_mm = "05:30"
 
 # ============ some canned measurements and reports =========
 

@@ -2,18 +2,18 @@
 
 def stat_string_of_number_list(nums):
     """returns a summary string for a list of numbers"""
-    f = "count = {:d},  sum = {:2.3f}"
+    f = "count = {:d}"
     n = len(nums)
     numbers = nums[:]  # copy
     numbers.sort()
     total = sum(numbers)
-    s = f.format(n, total)
+    s = f.format(n)
     if n > 1:
         ave = total / n
         top = numbers[-1]
         bottom = numbers[0]
         middle = numbers[int(n / 2)]
-        f = ",   ave = {:1.3f},  max = {:1.3f},  min = {:1.3f},  median = {:1.3f}"
+        f = ",   mean = {:1.3f},  max = {:1.3f},  min = {:1.3f},  median = {:1.3f}"
         s += f.format(ave, top, bottom, middle)
     return s
 

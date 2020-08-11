@@ -74,11 +74,11 @@ gc.collect()
 reset_seconds()
 
 # printing packets with filtering
-print_a_few_packets(number_of_packets=12, filter=is_gaen)
+print_a_few_packets(number_of_packets=120, filter=is_gaen)
 
 # Measuring advertising interval
 print_advertising_interval_stats()
 
 # Measuring time between RPI changes
-print_time_between_address_changes(n=5)
+print_time_between_address_changes(n=50)
 
